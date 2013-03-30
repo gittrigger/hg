@@ -1,0 +1,17 @@
+#!/bin/sh
+
+sh -c "diff -r src/com/*/* \`find bk -type d -ctime -1h -mindepth 2 -maxdepth 2 | tail -n1\`/*/*/*"; 
+sh -c "mkdir -p bk/\`date +%Y%m%d\`/\`date +%s\`"; 
+sh -c "cp -rp src/* \`find bk -type d -ctime -1h -mindepth 2 -maxdepth 2| tail -n1\`"; 
+sh -c "perl -e '\$b = \$_; \$b =~ s/android:versionName=\"([0-9]+)\.([0-9]+)\"/\$2/; \$b++; s/android:versionName=\"([0-9]+)\.([0-9]+)/android:versionName=\"\$1.\$b/;' -pi AndroidManifest.xml";
+grep "android:versionName" AndroidManifest.xml | perl -e 's/.*?android:versionName=\"([0-9]+)\.([0-9]+)\".*/[version] $1.$2/' -p;
+sh -c "ant release >> ~/Documents/ant.txt 2>&1";
+
+tail -n 20 ~/Documents/ant.txt | grep -q 'BUILD S' && sh -c "zipalign -f 4 bin/hgMetrix-release.apk bin/hgMetrix-publish.apk; adb -d uninstall com.havenskys.hgmetrix; adb -d install bin/hgMetrix-publish.apk" || sh -c "tail -n 20 ~/Documents/ant.txt"
+
+
+
+
+
+
+
